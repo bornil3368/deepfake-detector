@@ -19,15 +19,18 @@ export default async function handler(req, res) {
 
   try {
     const apiKey = process.env.RD_KEY;
-    if (!apiKey) return res.status(500).json({ error: "Missing RD_KEY" });
+    if (!apiKey) {
+      return res.status(500).json({ error: "Missing RD_KEY" });
+    }
 
     const upstream = await fetch("https://api.realitydefender.com/api/v1/upload", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
-        "Content-Type": req.headers["content-type"],
+        "Content-Type": req.headers["content-type"] || "application/octet-stream",
       },
       body: req,
+      duplex: "half",
     });
 
     const text = await upstream.text();
