@@ -1,152 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Deepfake Detector — Presentation Demo</title>
-  <style>
-    body {
-      background-color: #0e0f14;
-      color: #fff;
-      font-family: 'Inter', sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .container {
-      width: 420px;
-      background: #14171c;
-      border-radius: 18px;
-      padding: 30px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.4);
-      text-align: center;
-    }
-    h1 {
-      color: #3ba6ff;
-      font-size: 22px;
-      margin-bottom: 10px;
-    }
-    p { font-size: 13px; color: #bdbdbd; }
-    input[type="file"] { display: none; }
-    label {
-      display: inline-block;
-      background: #1e2530;
-      border: 1px solid #2c3038;
-      color: #ccc;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin: 10px 0;
-    }
-    button {
-      background-color: #0070f3;
-      border: none;
-      color: white;
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    button:hover { background-color: #0088ff; }
-    img {
-      display: none;
-      max-width: 100%;
-      border-radius: 10px;
-      margin-top: 15px;
-      border: 1px solid #333;
-    }
-    .result {
-      margin-top: 20px;
-      font-size: 16px;
-      font-weight: 600;
-      color: #4cd964;
-    }
-    .error { color: #ff4d4d; }
-    .spinner {
-      border: 4px solid #2c3038;
-      border-top: 4px solid #3ba6ff;
-      border-radius: 50%;
-      width: 36px;
-      height: 36px;
-      animation: spin 0.9s linear infinite;
-      margin: 15px auto;
-      display: none;
-    }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Deepfake Detector</h1>
-    <p>Upload an image to analyze for manipulations</p>
-    <label for="fileInput">Choose Image</label>
-    <input type="file" id="fileInput" accept=".jpg,.jpeg,.png" />
-    <br />
-    <button id="detectBtn">Run Detection</button>
-    <div class="spinner" id="spinner"></div>
-    <img id="preview" />
-    <div class="result" id="result"></div>
-  </div>
-
-  <script>
-    const fileInput = document.getElementById('fileInput');
-    const detectBtn = document.getElementById('detectBtn');
-    const spinner = document.getElementById('spinner');
-    const result = document.getElementById('result');
-    const preview = document.getElementById('preview');
-    const PROXY_URL = 'https://deepfake-proxy.vercel.app/api/index';
-
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          preview.src = ev.target.result;
-          preview.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-      } else {
-        preview.style.display = 'none';
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deepfake Detector</title>
+    <style>
+      body {
+        background-color: #0d0f12;
+        color: white;
+        font-family: "Segoe UI", sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
       }
-    });
-
-    detectBtn.addEventListener('click', async () => {
-      const file = fileInput.files[0];
-      if (!file) {
-        result.textContent = '⚠️ Please choose an image first.';
-        result.className = 'result error';
-        return;
+      .container {
+        text-align: center;
+        background-color: #15181d;
+        padding: 30px;
+        border-radius: 15px;
+        width: 400px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
       }
+      h1 {
+        color: #4da6ff;
+      }
+      input[type="file"] {
+        display: none;
+      }
+      label {
+        background-color: #1f2329;
+        color: #ddd;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      img {
+        max-width: 100%;
+        border-radius: 10px;
+        margin-top: 20px;
+      }
+      .error {
+        color: #ff4444;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+      .result {
+        margin-top: 10px;
+        font-weight: bold;
+        color: #00cc66;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Deepfake Detector</h1>
+      <p>Upload an image to analyze for manipulations</p>
 
-      spinner.style.display = 'block';
-      result.textContent = 'Analyzing...';
-      result.className = 'result';
-      try {
-        const res = await fetch(PROXY_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': file.type },
-          body: file
-        });
+      <label for="imageInput">Choose Image</label>
+      <input type="file" id="imageInput" accept="image/*" />
+      <br />
+      <button id="analyzeButton">Run Detection</button>
 
-        spinner.style.display = 'none';
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
+      <div id="preview"></div>
+      <div class="result" id="result"></div>
+      <div class="error" id="error"></div>
+    </div>
 
-        if (data.status || data.result) {
-          result.textContent = '✅ Likely Real (Confidence ~78%)';
-          result.className = 'result';
-        } else {
-          result.textContent = '❌ Possible Manipulation Detected';
-          result.className = 'result error';
+    <script>
+      const imageInput = document.getElementById("imageInput");
+      const preview = document.getElementById("preview");
+      const result = document.getElementById("result");
+      const error = document.getElementById("error");
+      const analyzeButton = document.getElementById("analyzeButton");
+
+      let selectedFile = null;
+
+      imageInput.addEventListener("change", (e) => {
+        selectedFile = e.target.files[0];
+        if (selectedFile) {
+          const img = document.createElement("img");
+          img.src = URL.createObjectURL(selectedFile);
+          preview.innerHTML = "";
+          preview.appendChild(img);
+          result.textContent = "";
+          error.textContent = "";
         }
-      } catch (err) {
-        spinner.style.display = 'none';
-        result.textContent = `❌ Error: ${err.message}`;
-        result.className = 'result error';
-      }
-    });
-  </script>
-</body>
+      });
+
+      analyzeButton.addEventListener("click", async () => {
+        if (!selectedFile) {
+          error.textContent = "Please select an image first!";
+          return;
+        }
+
+        result.textContent = "";
+        error.textContent = "";
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
+        try {
+          const response = await fetch("https://YOUR-VERCEL-PROJECT-NAME.vercel.app/api", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const data = await response.json();
+          result.textContent = data.result
+            ? `✅ ${data.result.label} (Confidence: ${Math.round(data.result.confidence * 100)}%)`
+            : "✅ Image analyzed successfully";
+        } catch (err) {
+          console.error(err);
+          error.textContent = `❌ Error: ${err.message}`;
+        }
+      });
+    </script>
+  </body>
 </html>
