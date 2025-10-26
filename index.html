@@ -15,6 +15,7 @@
         height: 100vh;
         margin: 0;
       }
+
       .container {
         text-align: center;
         background-color: #15181d;
@@ -23,12 +24,16 @@
         width: 400px;
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
       }
+
       h1 {
         color: #4da6ff;
+        margin-bottom: 10px;
       }
+
       input[type="file"] {
         display: none;
       }
+
       label {
         background-color: #1f2329;
         color: #ddd;
@@ -36,6 +41,7 @@
         border-radius: 5px;
         cursor: pointer;
       }
+
       button {
         background-color: #007bff;
         color: white;
@@ -45,19 +51,23 @@
         cursor: pointer;
         margin-top: 10px;
       }
+
       button:hover {
         background-color: #0056b3;
       }
+
       img {
         max-width: 100%;
         border-radius: 10px;
         margin-top: 20px;
       }
+
       .error {
         color: #ff4444;
         margin-top: 10px;
         font-weight: bold;
       }
+
       .result {
         margin-top: 10px;
         font-weight: bold;
@@ -65,6 +75,7 @@
       }
     </style>
   </head>
+
   <body>
     <div class="container">
       <h1>Deepfake Detector</h1>
@@ -89,6 +100,7 @@
 
       let selectedFile = null;
 
+      // Show preview when file selected
       imageInput.addEventListener("change", (e) => {
         selectedFile = e.target.files[0];
         if (selectedFile) {
@@ -101,6 +113,7 @@
         }
       });
 
+      // Run detection
       analyzeButton.addEventListener("click", async () => {
         if (!selectedFile) {
           error.textContent = "Please select an image first!";
@@ -114,21 +127,24 @@
         formData.append("file", selectedFile);
 
         try {
-          // ✅ Use relative API route (works automatically on Vercel)
-          const response = await fetch("/api", {
+          // ✅ FIXED ENDPOINT
+          const response = await fetch("/api/index", {
             method: "POST",
             body: formData,
           });
 
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
           const data = await response.json();
-          result.textContent =
-            data.result?.label
-              ? `✅ ${data.result.label} (Confidence: ${Math.round(data.result.confidence * 100)}%)`
-              : "✅ Image analyzed successfully";
+          console.log("Response:", data);
+
+          if (data.result?.label) {
+            result.textContent = `✅ ${data.result.label} (Confidence: ${Math.round(
+              data.result.confidence * 100
+            )}%)`;
+          } else {
+            result.textContent = "✅ Image analyzed successfully.";
+          }
         } catch (err) {
           console.error(err);
           error.textContent = `❌ Error: ${err.message}`;
