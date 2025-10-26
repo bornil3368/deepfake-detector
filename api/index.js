@@ -1,5 +1,6 @@
-// api/index.js — final working version with duplex fix
-export const config = { api: { bodyParser: false } };
+export const config = {
+  api: { bodyParser: false },
+};
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -7,10 +8,6 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Headers", "*");
 
   if (req.method === "OPTIONS") return res.status(200).end();
-
-  if (req.method === "GET") {
-    return res.status(200).json({ ok: true, message: "proxy active" });
-  }
 
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -22,17 +19,16 @@ export default async function handler(req, res) {
 
     const upstream = await fetch("https://api.realitydefender.com/api/v1/upload", {
       method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}` },
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": req.headers["content-type"],
+      },
       body: req,
-      duplex: "half"
     });
 
     const text = await upstream.text();
     res.status(upstream.status);
-    res.setHeader(
-      "Content-Type",
-      upstream.headers.get("content-type") || "application/json"
-    );
+    res.setHeader("Content-Type", upstream.headers.get("content-type") || "application/json");
     res.send(text);
   } catch (err) {
     console.error("Proxy Error:", err);
